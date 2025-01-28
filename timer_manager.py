@@ -13,10 +13,23 @@ class Timer:
         self.paused = False
         self.start_time: Optional[datetime] = None
 
+    def format_time(self, seconds: int) -> str:
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        seconds = seconds % 60
+
+        if hours > 0:
+            return f"{hours}h {minutes}m {seconds}s"
+        elif minutes > 0:
+            return f"{minutes}m {seconds}s"
+        else:
+            return f"{seconds}s"
+
     def run(self):
         self.start_time = datetime.now()
         while self.remaining > 0 and self.running:
             if not self.paused:
+                print(f"\rTimer '{self.name}' - {self.format_time(self.remaining)} remaining", end="", flush=True)
                 time.sleep(1)
                 self.remaining -= 1
             else:
@@ -35,8 +48,9 @@ class TimerManager:
         if name in self.timers:
             raise ValueError(f"Timer '{name}' already exists")
 
-        self.timers[name] = Timer(name, duration)
-        print(f"Created timer '{name}' with duration of {duration} seconds")
+        timer = Timer(name, duration)
+        self.timers[name] = timer
+        print(f"Created timer '{name}' with duration of {timer.format_time(duration)}")
 
     def start_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -64,7 +78,7 @@ class TimerManager:
             return
 
         timer.paused = True
-        print(f"Paused timer '{name}'")
+        print(f"\nPaused timer '{name}' with {timer.format_time(timer.remaining)} remaining")
 
     def resume_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -76,7 +90,7 @@ class TimerManager:
             return
 
         timer.paused = False
-        print(f"Resumed timer '{name}'")
+        print(f"Resumed timer '{name}' with {timer.format_time(timer.remaining)} remaining")
 
     def stop_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -107,8 +121,8 @@ class TimerManager:
         for name, timer in self.timers.items():
             status = "Running" if timer.running and not timer.paused else "Paused" if timer.paused else "Stopped"
             print(f"Name: {name}")
-            print(f"Duration: {timer.duration} seconds")
-            print(f"Remaining: {timer.remaining} seconds")
+            print(f"Duration: {timer.format_time(timer.duration)}")
+            print(f"Remaining: {timer.format_time(timer.remaining)}")
             print(f"Status: {status}")
             print("-" * 50)
 
