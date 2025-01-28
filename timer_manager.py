@@ -1,7 +1,7 @@
 import threading
 import time
 from datetime import datetime, timedelta
-from typing import Dict, Optional
+from typing import Dict, Optional, Callable
 
 class Timer:
     def __init__(self, name: str, duration: int):
@@ -12,6 +12,7 @@ class Timer:
         self.thread: Optional[threading.Thread] = None
         self.paused = False
         self.start_time: Optional[datetime] = None
+        self.callback: Optional[Callable[[str], None]] = None
 
     def format_time(self, seconds: int) -> str:
         hours = seconds // 3600
@@ -29,28 +30,44 @@ class Timer:
         self.start_time = datetime.now()
         while self.remaining > 0 and self.running:
             if not self.paused:
-                print(f"\rTimer '{self.name}' - {self.format_time(self.remaining)} remaining", end="", flush=True)
+                if self.callback:
+                    self.callback(f"Timer '{self.name}' - {self.format_time(self.remaining)} remaining")
                 time.sleep(1)
                 self.remaining -= 1
             else:
                 time.sleep(0.1)
 
         if self.remaining <= 0 and self.running:
-            print("\a")  # Console bell
-            print(f"\nTimer '{self.name}' has finished!")
-            print("> ", end="", flush=True)  # Restore prompt
+            if self.callback:
+                self.callback(f"\nTimer '{self.name}' has finished!")
 
 class TimerManager:
     def __init__(self):
         self.timers: Dict[str, Timer] = {}
+        self.output_callback = None
+
+    def set_output_callback(self, callback: Callable[[str], None]):
+        """Set callback for timer output"""
+        self.output_callback = callback
+
+    def _print(self, message: str):
+        """Print message using callback if available"""
+        if self.output_callback:
+            self.output_callback(message)
+        else:
+            print(message)
 
     def create_timer(self, name: str, duration: int) -> None:
         if name in self.timers:
             raise ValueError(f"Timer '{name}' already exists")
 
         timer = Timer(name, duration)
+        timer.callback = self._print
         self.timers[name] = timer
-        print(f"Created timer '{name}' with duration of {timer.format_time(duration)}")
+        self._print(f"Created timer '{name}' with duration of {timer.format_time(duration)}")
+
+        # Automatically start the timer
+        self.start_timer(name)
 
     def start_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -58,7 +75,7 @@ class TimerManager:
 
         timer = self.timers[name]
         if timer.running:
-            print(f"Timer '{name}' is already running")
+            self._print(f"Timer '{name}' is already running")
             return
 
         timer.running = True
@@ -66,7 +83,7 @@ class TimerManager:
         timer.thread = threading.Thread(target=timer.run)
         timer.thread.daemon = True
         timer.thread.start()
-        print(f"Started timer '{name}'")
+        self._print(f"Started timer '{name}'")
 
     def pause_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -74,11 +91,11 @@ class TimerManager:
 
         timer = self.timers[name]
         if not timer.running:
-            print(f"Timer '{name}' is not running")
+            self._print(f"Timer '{name}' is not running")
             return
 
         timer.paused = True
-        print(f"\nPaused timer '{name}' with {timer.format_time(timer.remaining)} remaining")
+        self._print(f"\nPaused timer '{name}' with {timer.format_time(timer.remaining)} remaining")
 
     def resume_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -86,11 +103,11 @@ class TimerManager:
 
         timer = self.timers[name]
         if not timer.running:
-            print(f"Timer '{name}' is not running")
+            self._print(f"Timer '{name}' is not running")
             return
 
         timer.paused = False
-        print(f"Resumed timer '{name}' with {timer.format_time(timer.remaining)} remaining")
+        self._print(f"Resumed timer '{name}' with {timer.format_time(timer.remaining)} remaining")
 
     def stop_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -101,7 +118,7 @@ class TimerManager:
         if timer.thread:
             timer.thread.join(0.1)
         timer.remaining = timer.duration
-        print(f"Stopped timer '{name}'")
+        self._print(f"Stopped timer '{name}'")
 
     def delete_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -109,22 +126,22 @@ class TimerManager:
 
         self.stop_timer(name)
         del self.timers[name]
-        print(f"Deleted timer '{name}'")
+        self._print(f"Deleted timer '{name}'")
 
     def list_timers(self) -> None:
         if not self.timers:
-            print("No timers exist")
+            self._print("No timers exist")
             return
 
-        print("\nCurrent Timers:")
-        print("-" * 50)
+        self._print("\nCurrent Timers:")
+        self._print("-" * 50)
         for name, timer in self.timers.items():
             status = "Running" if timer.running and not timer.paused else "Paused" if timer.paused else "Stopped"
-            print(f"Name: {name}")
-            print(f"Duration: {timer.format_time(timer.duration)}")
-            print(f"Remaining: {timer.format_time(timer.remaining)}")
-            print(f"Status: {status}")
-            print("-" * 50)
+            self._print(f"Name: {name}")
+            self._print(f"Duration: {timer.format_time(timer.duration)}")
+            self._print(f"Remaining: {timer.format_time(timer.remaining)}")
+            self._print(f"Status: {status}")
+            self._print("-" * 50)
 
     def stop_all_timers(self) -> None:
         for name in list(self.timers.keys()):

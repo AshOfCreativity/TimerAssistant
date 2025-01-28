@@ -1,39 +1,90 @@
-import sys
+import tkinter as tk
+from tkinter import ttk
+import re
 from timer_manager import TimerManager
-from command_parser import CommandParser
+from command_interpreter import CommandInterpreter
 
-def main():
-    print("Timer Management Application")
-    print("Type 'help' for available commands")
-    
-    timer_manager = TimerManager()
-    command_parser = CommandParser()
-    
-    while True:
+class TimerApp:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Timer Assistant")
+        self.root.geometry("600x400")
+
+        self.timer_manager = TimerManager()
+        self.command_interpreter = CommandInterpreter()
+
+        # Create input frame
+        self.input_frame = ttk.Frame(self.root)
+        self.input_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        # Create command input
+        self.command_var = tk.StringVar()
+        self.command_entry = ttk.Entry(
+            self.input_frame, 
+            textvariable=self.command_var,
+            font=('Arial', 12)
+        )
+        self.command_entry.pack(fill=tk.X, expand=True, side=tk.LEFT, padx=(0, 5))
+        self.command_entry.bind('<Return>', self.process_command)
+
+        # Create output text area
+        self.output_text = tk.Text(self.root, height=15, font=('Arial', 10))
+        self.output_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Initial help message
+        self.show_help()
+
+        # Set focus to entry
+        self.command_entry.focus_set()
+
+    def show_help(self):
+        help_text = """Welcome to Timer Assistant!
+Just type what you want in natural language:
+
+Examples:
+- "set a 5 minute timer for coffee break"
+- "start a 25 min pomodoro timer"
+- "create 1 hour meeting timer"
+- "pause the coffee timer"
+- "show all timers"
+- "stop meeting timer"
+
+The assistant will understand your intent and execute the command.
+"""
+        self.output_text.insert('1.0', help_text)
+
+    def print_output(self, text):
+        self.output_text.insert('end', f"{text}\n") #Corrected to append to the end
+
+    def process_command(self, event=None):
+        command_text = self.command_var.get().strip()
+        if not command_text:
+            return
+
+        self.command_var.set("")  # Clear input
+
+        if command_text.lower() == "help":
+            self.show_help()
+            return
+
+        if command_text.lower() == "exit":
+            self.root.quit()
+            return
+
+        # Process command through interpreter
         try:
-            user_input = input("> ").strip().lower()
-            
-            if user_input == "exit":
-                print("Exiting application...")
-                timer_manager.stop_all_timers()
-                sys.exit(0)
-                
-            if user_input == "help":
-                command_parser.show_help()
-                continue
-                
-            command = command_parser.parse_command(user_input)
-            if command:
-                timer_manager.execute_command(command)
+            result = self.command_interpreter.interpret(command_text)
+            if result:
+                self.timer_manager.execute_command(result)
+                self.print_output(f"Executed: {command_text}")
             else:
-                print("Invalid command format. Type 'help' for available commands.")
-                
-        except KeyboardInterrupt:
-            print("\nExiting application...")
-            timer_manager.stop_all_timers()
-            sys.exit(0)
+                self.print_output("I didn't understand that command. Try rephrasing or type 'help'.")
         except Exception as e:
-            print(f"Error: {str(e)}")
+            self.print_output(f"Error: {str(e)}")
+
+    def run(self):
+        self.root.mainloop()
 
 if __name__ == "__main__":
-    main()
+    app = TimerApp()
+    app.run()
