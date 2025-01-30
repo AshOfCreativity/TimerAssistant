@@ -12,21 +12,36 @@ A text-based timer management application that allows you to create and manage m
 - Side panel display of active timers
 - Command-line interface for all operations
 
-## Installation
+## Download and Installation
 
-### Windows
+### Windows Users (Recommended)
+
+1. Download `TimerAssistant.exe` from the releases page
+2. Double-click to run the application
+3. No additional installation required
+
+### Building from Source (Windows)
+
+If you want to build the executable yourself:
 
 1. Install Python 3.6 or higher from [python.org](https://python.org)
-   - During installation, make sure to check "Add Python to PATH"
+   - During installation, check "Add Python to PATH"
 
-2. Install Sox (for audio alerts):
+2. Install Sox:
    - Download Sox for Windows from [SourceForge](https://sourceforge.net/projects/sox/files/sox/)
-   - Add Sox to your system PATH
+   - Install to default location (`C:\Program Files (x86)\sox-14.4.2\`)
 
-3. Install required Python packages:
+3. Open Command Prompt as Administrator and run:
    ```cmd
-   pip install word2number
+   pip install pyinstaller word2number
    ```
+
+4. Navigate to the project directory and run:
+   ```cmd
+   pyinstaller timer.spec
+   ```
+
+5. Find the executable in the `dist` folder
 
 ### Linux
 
@@ -64,12 +79,8 @@ A text-based timer management application that allows you to create and manage m
 
 ## Usage
 
-1. Download all the Python files (.py) to a directory
-2. Run the application:
-   ```
-   python timer_app.py
-   ```
-3. Type `help` to see available commands
+1. Start the application by running `TimerAssistant.exe` (Windows) or `python timer_app.py` (Linux/macOS).
+2. Type `help` to see available commands
 
 ### Example Commands
 
@@ -84,28 +95,26 @@ The application will understand your intent and execute the command.
 
 ## Offline Use
 
-This application works completely offline. Once installed, no internet connection is required.
-
-## Files Description
-
-- `timer_app.py` - Main application with GUI
-- `timer_manager.py` - Timer management logic
-- `command_interpreter.py` - Natural language command processing
-- `command_parser.py` - Command parsing utilities
-- `alert_manager.py` - Sound alert management
+This application works completely offline. Once downloaded, no internet connection is required.
 
 ## Troubleshooting
 
 ### No Sound Alerts
 
-1. Verify Sox is installed:
-   - Windows: Run `sox --version` in Command Prompt
-   - Linux/macOS: Run `sox --version` in Terminal
-2. Check system sound settings
-3. The application will fall back to visual alerts if sound is unavailable
+The application uses built-in sound alerts. If you don't hear alerts:
+1. Check Windows sound settings
+2. Ensure speakers/headphones are connected and working
+3. Try adjusting system volume
 
-### Python Installation Issues
+### Application Won't Start
 
-- Ensure Python is in your system PATH
-- Try running with `python3` instead of `python` on Linux/macOS
-- Verify tkinter is installed (included with official Python distributions)
+1. Make sure you're running on Windows 10/11 (for .exe)
+2. Try running as administrator (for .exe)
+3. Check Windows Defender/antivirus isn't blocking the application (for .exe)
+4. Ensure Python is in your system PATH (Linux/macOS)
+5. Try running with `python3` instead of `python` on Linux/macOS
+6. Verify tkinter is installed (included with official Python distributions)
+
+## Support
+
+For issues or feature requests, please create an issue in the project repository.

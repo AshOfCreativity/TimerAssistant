@@ -45,7 +45,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pyinstaller --clean --windowed --onefile --icon=generated-icon.png timer_app.py"
+args = "pyinstaller --clean --windowed --onefile --target-platform win32 --icon=generated-icon.png --add-binary='/nix/store/*/sox/bin/sox:.' timer_app.py"
 
 [deployment]
 run = ["sh", "-c", "python timer_app.py"]

@@ -2,10 +2,18 @@
 
 block_cipher = None
 
+# Adjust Sox path for Windows
+sox_binary = 'C:/Program Files (x86)/sox-14.4.2/sox.exe'
+
 a = Analysis(
     ['timer_app.py'],
     pathex=[],
-    binaries=[],
+    binaries=[
+        (sox_binary, '.'),  # Bundle Sox executable
+        ('C:/Program Files (x86)/sox-14.4.2/libgcc_s_dw2-1.dll', '.'),  # Required Sox DLLs
+        ('C:/Program Files (x86)/sox-14.4.2/libwinpthread-1.dll', '.'),
+        ('C:/Program Files (x86)/sox-14.4.2/libgomp-1.dll', '.'),
+    ],
     datas=[],
     hiddenimports=['tkinter', 'word2number'],
     hookspath=[],
@@ -40,5 +48,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='generated-icon.png'
+    icon='generated-icon.png',
+    version='file_version_info.txt'
 )
