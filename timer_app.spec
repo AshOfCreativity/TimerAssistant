@@ -4,7 +4,7 @@
 a = Analysis(
     ['timer_app.py'],
     pathex=[],
-    binaries=[('/nix/store/*/sox/bin/sox', '.')],
+    binaries=[],
     datas=[],
     hiddenimports=[],
     hookspath=[],
