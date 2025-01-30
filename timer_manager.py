@@ -15,23 +15,31 @@ class Timer:
         self.callback: Optional[Callable[[str], None]] = None
 
     def format_time(self, seconds: int) -> str:
+        """Format time in a concise way."""
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
         seconds = seconds % 60
 
         if hours > 0:
-            return f"{hours}h {minutes}m {seconds}s"
+            return f"{hours}h {minutes}m"
         elif minutes > 0:
-            return f"{minutes}m {seconds}s"
+            return f"{minutes}m" if seconds == 0 else f"{minutes}m {seconds}s"
         else:
             return f"{seconds}s"
 
     def run(self):
+        """Run the timer with minimal output."""
         self.start_time = datetime.now()
+        last_output = ""
+
         while self.remaining > 0 and self.running:
             if not self.paused:
-                if self.callback:
-                    self.callback(f"Timer '{self.name}' - {self.format_time(self.remaining)} remaining")
+                current_output = self.format_time(self.remaining)
+                # Only update output if it has changed
+                if current_output != last_output:
+                    if self.callback:
+                        self.callback(f"[{self.name}]: {current_output}")
+                    last_output = current_output
                 time.sleep(1)
                 self.remaining -= 1
             else:
@@ -39,7 +47,7 @@ class Timer:
 
         if self.remaining <= 0 and self.running:
             if self.callback:
-                self.callback(f"\nTimer '{self.name}' has finished!")
+                self.callback(f"\n[{self.name}] Complete!")
 
 class TimerManager:
     def __init__(self):
@@ -130,18 +138,16 @@ class TimerManager:
 
     def list_timers(self) -> None:
         if not self.timers:
-            self._print("No timers exist")
+            self._print("No active timers")
             return
 
-        self._print("\nCurrent Timers:")
-        self._print("-" * 50)
+        self._print("\nActive Timers:")
+        self._print("-" * 30)
         for name, timer in self.timers.items():
-            status = "Running" if timer.running and not timer.paused else "Paused" if timer.paused else "Stopped"
-            self._print(f"Name: {name}")
-            self._print(f"Duration: {timer.format_time(timer.duration)}")
-            self._print(f"Remaining: {timer.format_time(timer.remaining)}")
-            self._print(f"Status: {status}")
-            self._print("-" * 50)
+            if timer.running:
+                status = "⏸️ Paused" if timer.paused else "⏱️ Running"
+                self._print(f"{name}: {status} - {timer.format_time(timer.remaining)}")
+        self._print("-" * 30)
 
     def stop_all_timers(self) -> None:
         for name in list(self.timers.keys()):

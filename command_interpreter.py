@@ -20,44 +20,60 @@ class CommandInterpreter:
 
     def _extract_duration(self, text: str) -> Optional[int]:
         """Extract duration from text in various formats."""
+        text = text.lower().strip()
         total_seconds = 0
         found_time = False
 
-        # Look for combined time formats (e.g., "1 hour 30 minutes")
-        text = text.lower()
-        for unit, multiplier in self.time_multipliers.items():
-            # Pattern for numeric values (e.g., "5 minutes", "5min")
-            pattern = rf'(\d+)\s*{unit}'
-            matches = re.finditer(pattern, text)
-            for match in matches:
-                found_time = True
-                total_seconds += int(match.group(1)) * multiplier
-
-            # Pattern for word numbers (e.g., "five minutes")
-            word_pattern = rf'([a-zA-Z-]+)\s*{unit}'
-            matches = re.finditer(word_pattern, text)
-            for match in matches:
+        # Handle combined formats first (e.g., "1 hour and 30 minutes", "1h30m")
+        time_parts = re.findall(r'(\d+)\s*([hms]|hour|minute|second|hr|min|sec)s?\b', text)
+        if time_parts:
+            for value, unit in time_parts:
+                unit = unit.lower()
                 try:
-                    number = w2n.word_to_num(match.group(1))
+                    number = int(value)
+                    if unit in ['h', 'hour', 'hr']:
+                        total_seconds += number * 3600
+                    elif unit in ['m', 'minute', 'min']:
+                        total_seconds += number * 60
+                    elif unit in ['s', 'second', 'sec']:
+                        total_seconds += number
                     found_time = True
-                    total_seconds += number * multiplier
                 except ValueError:
                     continue
 
-        # If no combined format found, try simple format
+        # Try numeric followed by time unit format (e.g., "5 minutes", "5min")
         if not found_time:
-            simple_pattern = r'(\d+|\w+)\s*(' + '|'.join(self.time_multipliers.keys()) + ')'
-            match = re.search(simple_pattern, text)
+            for unit, multiplier in self.time_multipliers.items():
+                pattern = rf'(\d+)\s*{unit}'
+                matches = re.finditer(pattern, text)
+                for match in matches:
+                    try:
+                        total_seconds += int(match.group(1)) * multiplier
+                        found_time = True
+                    except ValueError:
+                        continue
+
+        # Try word numbers (e.g., "five minutes")
+        if not found_time:
+            for unit, multiplier in self.time_multipliers.items():
+                pattern = rf'([a-zA-Z-]+)\s*{unit}'
+                matches = re.finditer(pattern, text)
+                for match in matches:
+                    try:
+                        number = w2n.word_to_num(match.group(1))
+                        total_seconds += number * multiplier
+                        found_time = True
+                    except ValueError:
+                        continue
+
+        # Try standalone numbers (assume minutes if no unit specified)
+        if not found_time and re.search(r'\b\d+\b', text):
+            match = re.search(r'\b(\d+)\b', text)
             if match:
-                value, unit = match.groups()
                 try:
-                    if value.isdigit():
-                        number = int(value)
-                    else:
-                        number = w2n.word_to_num(value)
-                    total_seconds = number * self.time_multipliers[unit]
+                    total_seconds = int(match.group(1)) * 60  # Assume minutes
                     found_time = True
-                except (ValueError, KeyError):
+                except ValueError:
                     pass
 
         return total_seconds if found_time else None
