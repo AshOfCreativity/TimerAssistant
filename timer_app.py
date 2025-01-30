@@ -8,52 +8,32 @@ class TimerApp:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Timer Assistant")
-        self.root.geometry("600x400")
+        self.root.geometry("800x500")
 
         # Set theme for better appearance
         style = ttk.Style()
-        style.theme_use('clam')  # Use 'clam' theme for better cross-platform compatibility
+        style.theme_use('clam')
 
         self.timer_manager = TimerManager()
         self.command_interpreter = CommandInterpreter()
 
-        # Create input frame
-        self.input_frame = ttk.Frame(self.root)
-        self.input_frame.pack(fill=tk.X, padx=5, pady=5)
+        # Create main container with left and right panes
+        self.paned_window = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.paned_window.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        # Create command input with placeholder
-        self.command_var = tk.StringVar()
-        self.command_entry = ttk.Entry(
-            self.input_frame, 
-            textvariable=self.command_var,
-            font=('Arial', 12)
-        )
-        self.command_entry.pack(fill=tk.X, expand=True, side=tk.LEFT, padx=(0, 5))
-        self.command_entry.bind('<Return>', self.process_command)
+        # Left pane for input and general output
+        self.left_pane = ttk.Frame(self.paned_window)
+        self.paned_window.add(self.left_pane, weight=2)
 
-        # Create "Enter" button
-        self.enter_button = ttk.Button(
-            self.input_frame,
-            text="Enter",
-            command=lambda: self.process_command(None)
-        )
-        self.enter_button.pack(side=tk.RIGHT)
+        # Right pane for active timers
+        self.right_pane = ttk.Frame(self.paned_window)
+        self.paned_window.add(self.right_pane, weight=1)
 
-        # Create output text area with scrollbar
-        self.output_frame = ttk.Frame(self.root)
-        self.output_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # Set up left pane components
+        self.setup_left_pane()
 
-        self.scrollbar = ttk.Scrollbar(self.output_frame)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.output_text = tk.Text(
-            self.output_frame,
-            height=15,
-            font=('Arial', 10),
-            yscrollcommand=self.scrollbar.set
-        )
-        self.output_text.pack(fill=tk.BOTH, expand=True)
-        self.scrollbar.config(command=self.output_text.yview)
+        # Set up right pane components
+        self.setup_right_pane()
 
         # Set up timer manager callback
         self.timer_manager.set_output_callback(self.print_output)
@@ -63,6 +43,60 @@ class TimerApp:
 
         # Set focus to entry
         self.command_entry.focus_set()
+
+    def setup_left_pane(self):
+        # Input frame
+        self.input_frame = ttk.Frame(self.left_pane)
+        self.input_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        # Command input with placeholder
+        self.command_var = tk.StringVar()
+        self.command_entry = ttk.Entry(
+            self.input_frame, 
+            textvariable=self.command_var,
+            font=('Arial', 12)
+        )
+        self.command_entry.pack(fill=tk.X, expand=True, side=tk.LEFT, padx=(0, 5))
+        self.command_entry.bind('<Return>', self.process_command)
+
+        # Enter button
+        self.enter_button = ttk.Button(
+            self.input_frame,
+            text="Enter",
+            command=lambda: self.process_command(None)
+        )
+        self.enter_button.pack(side=tk.RIGHT)
+
+        # Output text area with scrollbar
+        self.output_frame = ttk.Frame(self.left_pane)
+        self.output_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.scrollbar = ttk.Scrollbar(self.output_frame)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.output_text = tk.Text(
+            self.output_frame,
+            font=('Arial', 10),
+            yscrollcommand=self.scrollbar.set
+        )
+        self.output_text.pack(fill=tk.BOTH, expand=True)
+        self.scrollbar.config(command=self.output_text.yview)
+
+    def setup_right_pane(self):
+        # Active Timers label
+        self.timer_label = ttk.Label(
+            self.right_pane,
+            text="Active Timers",
+            font=('Arial', 12, 'bold')
+        )
+        self.timer_label.pack(pady=5)
+
+        # Frame for active timers
+        self.active_timers_frame = ttk.Frame(self.right_pane)
+        self.active_timers_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Dictionary to keep track of timer labels
+        self.timer_labels = {}
 
     def show_help(self):
         help_text = """Welcome to Timer Assistant!
@@ -81,9 +115,52 @@ The assistant will understand your intent and execute the command.
         self.output_text.delete('1.0', tk.END)
         self.output_text.insert('1.0', help_text)
 
+    def update_timer_display(self, name: str, time_str: str, status: str):
+        """Update or create a timer display in the right pane"""
+        if name not in self.timer_labels:
+            # Create new timer frame
+            timer_frame = ttk.Frame(self.active_timers_frame)
+            timer_frame.pack(fill=tk.X, pady=2)
+
+            # Timer name and remaining time
+            label = ttk.Label(
+                timer_frame,
+                font=('Arial', 10),
+                anchor='w'
+            )
+            label.pack(side=tk.LEFT, padx=5)
+
+            self.timer_labels[name] = {
+                'frame': timer_frame,
+                'label': label
+            }
+
+        # Update label text
+        status_icon = "⏸️" if status == "paused" else "⏱️"
+        self.timer_labels[name]['label'].config(
+            text=f"{status_icon} {name}: {time_str}"
+        )
+
+    def remove_timer_display(self, name: str):
+        """Remove a timer display from the right pane"""
+        if name in self.timer_labels:
+            self.timer_labels[name]['frame'].destroy()
+            del self.timer_labels[name]
+
     def print_output(self, text):
-        self.output_text.insert('end', f"{text}\n")
-        self.output_text.see('end')  # Auto-scroll to the bottom
+        """Handle output from timer manager"""
+        # Check if this is a timer update message
+        timer_update = re.match(r'\[(.*?)\]:\s*(.*)', text)
+        if timer_update:
+            name, info = timer_update.groups()
+            if "Complete" in info:
+                self.remove_timer_display(name)
+                self.output_text.insert('end', f"Timer '{name}' completed!\n")
+            else:
+                self.update_timer_display(name, info, "running")
+        else:
+            self.output_text.insert('end', f"{text}\n")
+        self.output_text.see('end')
 
     def process_command(self, event=None):
         command_text = self.command_var.get().strip()

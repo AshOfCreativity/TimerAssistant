@@ -15,15 +15,13 @@ class Timer:
         self.callback: Optional[Callable[[str], None]] = None
 
     def format_time(self, seconds: int) -> str:
-        """Format time in a concise way."""
-        hours = seconds // 3600
-        minutes = (seconds % 3600) // 60
-        seconds = seconds % 60
+        """Format time in a concise way, focusing on minutes."""
+        if seconds <= 0:
+            return "0m"
 
-        if hours > 0:
-            return f"{hours}h {minutes}m"
-        elif minutes > 0:
-            return f"{minutes}m" if seconds == 0 else f"{minutes}m {seconds}s"
+        minutes = seconds // 60
+        if minutes > 0:
+            return f"{minutes}m"
         else:
             return f"{seconds}s"
 
@@ -47,7 +45,7 @@ class Timer:
 
         if self.remaining <= 0 and self.running:
             if self.callback:
-                self.callback(f"\n[{self.name}] Complete!")
+                self.callback(f"[{self.name}]: Complete!")
 
 class TimerManager:
     def __init__(self):
@@ -72,7 +70,7 @@ class TimerManager:
         timer = Timer(name, duration)
         timer.callback = self._print
         self.timers[name] = timer
-        self._print(f"Created timer '{name}' with duration of {timer.format_time(duration)}")
+        self._print(f"Created timer '{name}' ({timer.format_time(duration)})")
 
         # Automatically start the timer
         self.start_timer(name)
@@ -91,7 +89,6 @@ class TimerManager:
         timer.thread = threading.Thread(target=timer.run)
         timer.thread.daemon = True
         timer.thread.start()
-        self._print(f"Started timer '{name}'")
 
     def pause_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -103,7 +100,7 @@ class TimerManager:
             return
 
         timer.paused = True
-        self._print(f"\nPaused timer '{name}' with {timer.format_time(timer.remaining)} remaining")
+        self._print(f"[{name}]: {timer.format_time(timer.remaining)}")
 
     def resume_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -115,7 +112,7 @@ class TimerManager:
             return
 
         timer.paused = False
-        self._print(f"Resumed timer '{name}' with {timer.format_time(timer.remaining)} remaining")
+        self._print(f"[{name}]: {timer.format_time(timer.remaining)}")
 
     def stop_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -127,6 +124,7 @@ class TimerManager:
             timer.thread.join(0.1)
         timer.remaining = timer.duration
         self._print(f"Stopped timer '{name}'")
+        self._print(f"[{name}]: Complete!")
 
     def delete_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -141,13 +139,9 @@ class TimerManager:
             self._print("No active timers")
             return
 
-        self._print("\nActive Timers:")
-        self._print("-" * 30)
         for name, timer in self.timers.items():
             if timer.running:
-                status = "⏸️ Paused" if timer.paused else "⏱️ Running"
-                self._print(f"{name}: {status} - {timer.format_time(timer.remaining)}")
-        self._print("-" * 30)
+                self._print(f"[{name}]: {timer.format_time(timer.remaining)}")
 
     def stop_all_timers(self) -> None:
         for name in list(self.timers.keys()):
