@@ -87,6 +87,9 @@ class TimerManager:
         self.timers[name] = timer
         self._print(f"Created timer '{name}' ({timer.format_time(duration)})")
 
+        # Send initial timer state to display
+        self._print(f"[{name}]: {timer.format_time(duration)}")
+
         # Automatically start the timer
         self.start_timer(name)
 

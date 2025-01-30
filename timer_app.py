@@ -135,8 +135,8 @@ The assistant will understand your intent and execute the command.
                 'label': label
             }
 
-        # Update label text
-        status_icon = "⏸️" if status == "paused" else "⏱️"
+        # Update label text with status icon
+        status_icon = "⏸️" if status == "paused" else "⏱️" if status == "running" else "⚠️"
         self.timer_labels[name]['label'].config(
             text=f"{status_icon} {name}: {time_str}"
         )
@@ -154,10 +154,17 @@ The assistant will understand your intent and execute the command.
         if timer_update:
             name, info = timer_update.groups()
             if "Complete" in info:
-                self.remove_timer_display(name)
+                status = "complete"
+                self.update_timer_display(name, "Done!", status)
                 self.output_text.insert('end', f"Timer '{name}' completed!\n")
             else:
-                self.update_timer_display(name, info, "running")
+                status = "running"
+                if name in self.timer_labels:
+                    # Check if timer is paused
+                    timer = self.timer_manager.timers.get(name)
+                    if timer and timer.paused:
+                        status = "paused"
+                self.update_timer_display(name, info, status)
         else:
             self.output_text.insert('end', f"{text}\n")
         self.output_text.see('end')
