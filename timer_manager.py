@@ -2,6 +2,7 @@ import threading
 import time
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Callable
+from alert_manager import AlertManager
 
 class Timer:
     def __init__(self, name: str, duration: int):
@@ -13,6 +14,7 @@ class Timer:
         self.paused = False
         self.start_time: Optional[datetime] = None
         self.callback: Optional[Callable[[str], None]] = None
+        self.alerting = False
 
     def format_time(self, seconds: int) -> str:
         """Format time in a concise way, focusing on minutes."""
@@ -46,11 +48,13 @@ class Timer:
         if self.remaining <= 0 and self.running:
             if self.callback:
                 self.callback(f"[{self.name}]: Complete!")
+                self.alerting = True
 
 class TimerManager:
     def __init__(self):
         self.timers: Dict[str, Timer] = {}
         self.output_callback = None
+        self.alert_manager = AlertManager()
 
     def set_output_callback(self, callback: Callable[[str], None]):
         """Set callback for timer output"""
@@ -65,6 +69,17 @@ class TimerManager:
 
     def create_timer(self, name: str, duration: int) -> None:
         if name in self.timers:
+            # If timer exists and is alerting, stop the alert and refresh duration
+            if self.timers[name].alerting:
+                self.alert_manager.stop_alert(name)
+                timer = self.timers[name]
+                timer.alerting = False
+                timer.duration = duration
+                timer.remaining = duration
+                timer.running = True
+                timer.paused = False
+                self._print(f"Refreshed timer '{name}' ({timer.format_time(duration)})")
+                return
             raise ValueError(f"Timer '{name}' already exists")
 
         timer = Timer(name, duration)
@@ -84,11 +99,26 @@ class TimerManager:
             self._print(f"Timer '{name}' is already running")
             return
 
+        # Stop any existing alert
+        if timer.alerting:
+            self.alert_manager.stop_alert(name)
+            timer.alerting = False
+
         timer.running = True
         timer.paused = False
         timer.thread = threading.Thread(target=timer.run)
         timer.thread.daemon = True
         timer.thread.start()
+
+        # Start alert when timer completes
+        def check_and_alert():
+            timer.thread.join()
+            if timer.running and timer.remaining <= 0:
+                self.alert_manager.start_alert(name)
+
+        alert_check_thread = threading.Thread(target=check_and_alert)
+        alert_check_thread.daemon = True
+        alert_check_thread.start()
 
     def pause_timer(self, name: str) -> None:
         if name not in self.timers:
@@ -102,6 +132,11 @@ class TimerManager:
         timer.paused = True
         self._print(f"[{name}]: {timer.format_time(timer.remaining)}")
 
+        # Stop alert if timer is alerting
+        if timer.alerting:
+            self.alert_manager.stop_alert(name)
+            timer.alerting = False
+
     def resume_timer(self, name: str) -> None:
         if name not in self.timers:
             raise ValueError(f"Timer '{name}' does not exist")
@@ -110,6 +145,11 @@ class TimerManager:
         if not timer.running:
             self._print(f"Timer '{name}' is not running")
             return
+
+        # Stop alert if timer is alerting
+        if timer.alerting:
+            self.alert_manager.stop_alert(name)
+            timer.alerting = False
 
         timer.paused = False
         self._print(f"[{name}]: {timer.format_time(timer.remaining)}")
@@ -123,12 +163,22 @@ class TimerManager:
         if timer.thread:
             timer.thread.join(0.1)
         timer.remaining = timer.duration
+
+        # Stop alert if timer is alerting
+        if timer.alerting:
+            self.alert_manager.stop_alert(name)
+            timer.alerting = False
+
         self._print(f"Stopped timer '{name}'")
         self._print(f"[{name}]: Complete!")
 
     def delete_timer(self, name: str) -> None:
         if name not in self.timers:
             raise ValueError(f"Timer '{name}' does not exist")
+
+        # Stop alert if timer is alerting
+        if self.timers[name].alerting:
+            self.alert_manager.stop_alert(name)
 
         self.stop_timer(name)
         del self.timers[name]
@@ -144,6 +194,7 @@ class TimerManager:
                 self._print(f"[{name}]: {timer.format_time(timer.remaining)}")
 
     def stop_all_timers(self) -> None:
+        self.alert_manager.stop_all_alerts()
         for name in list(self.timers.keys()):
             self.stop_timer(name)
 
