@@ -10,6 +10,10 @@ class TimerApp:
         self.root.title("Timer Assistant")
         self.root.geometry("600x400")
 
+        # Set theme for better appearance
+        style = ttk.Style()
+        style.theme_use('clam')  # Use 'clam' theme for better cross-platform compatibility
+
         self.timer_manager = TimerManager()
         self.command_interpreter = CommandInterpreter()
 
@@ -17,7 +21,7 @@ class TimerApp:
         self.input_frame = ttk.Frame(self.root)
         self.input_frame.pack(fill=tk.X, padx=5, pady=5)
 
-        # Create command input
+        # Create command input with placeholder
         self.command_var = tk.StringVar()
         self.command_entry = ttk.Entry(
             self.input_frame, 
@@ -27,9 +31,32 @@ class TimerApp:
         self.command_entry.pack(fill=tk.X, expand=True, side=tk.LEFT, padx=(0, 5))
         self.command_entry.bind('<Return>', self.process_command)
 
-        # Create output text area
-        self.output_text = tk.Text(self.root, height=15, font=('Arial', 10))
-        self.output_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # Create "Enter" button
+        self.enter_button = ttk.Button(
+            self.input_frame,
+            text="Enter",
+            command=lambda: self.process_command(None)
+        )
+        self.enter_button.pack(side=tk.RIGHT)
+
+        # Create output text area with scrollbar
+        self.output_frame = ttk.Frame(self.root)
+        self.output_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.scrollbar = ttk.Scrollbar(self.output_frame)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.output_text = tk.Text(
+            self.output_frame,
+            height=15,
+            font=('Arial', 10),
+            yscrollcommand=self.scrollbar.set
+        )
+        self.output_text.pack(fill=tk.BOTH, expand=True)
+        self.scrollbar.config(command=self.output_text.yview)
+
+        # Set up timer manager callback
+        self.timer_manager.set_output_callback(self.print_output)
 
         # Initial help message
         self.show_help()
@@ -51,10 +78,12 @@ Examples:
 
 The assistant will understand your intent and execute the command.
 """
+        self.output_text.delete('1.0', tk.END)
         self.output_text.insert('1.0', help_text)
 
     def print_output(self, text):
-        self.output_text.insert('end', f"{text}\n") #Corrected to append to the end
+        self.output_text.insert('end', f"{text}\n")
+        self.output_text.see('end')  # Auto-scroll to the bottom
 
     def process_command(self, event=None):
         command_text = self.command_var.get().strip()
@@ -83,6 +112,10 @@ The assistant will understand your intent and execute the command.
             self.print_output(f"Error: {str(e)}")
 
     def run(self):
+        # Make sure the window appears on top when started
+        self.root.lift()
+        self.root.attributes('-topmost', True)
+        self.root.attributes('-topmost', False)
         self.root.mainloop()
 
 if __name__ == "__main__":
