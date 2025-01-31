@@ -14,10 +14,14 @@ VSVersionInfo(
     StringFileInfo(
       [StringTable(
         u'040904B0',
-        [StringStruct(u'FileDescription', u'Timer Assistant'),
-         StringStruct(u'ProductName', u'Timer Assistant'),
+        [StringStruct(u'CompanyName', u'Timer Assistant'),
+         StringStruct(u'FileDescription', u'Timer Assistant'),
+         StringStruct(u'FileVersion', u'1.0.0'),
+         StringStruct(u'InternalName', u'timer_assistant'),
+         StringStruct(u'LegalCopyright', u'Copyright (c) 2025'),
          StringStruct(u'OriginalFilename', u'TimerAssistant.exe'),
-         StringStruct(u'FileVersion', u'1.0.0')])
+         StringStruct(u'ProductName', u'Timer Assistant'),
+         StringStruct(u'ProductVersion', u'1.0.0')])
       ]), 
     VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
   ]
