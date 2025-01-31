@@ -1,16 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os.path
 
-# Define paths
-WINDOWS_BUILD_DIR = 'windows_build'
-VERSION_FILE = os.path.join(WINDOWS_BUILD_DIR, 'file_version_info.txt')
-ICON_FILE = 'generated-icon.png'
-
 a = Analysis(
     ['timer_app.py'],
     pathex=[],
     binaries=[],
-    datas=[(ICON_FILE, '.')],
+    datas=[('generated-icon.png', '.')],
     hiddenimports=[
         'tkinter',
         'command_interpreter',
@@ -44,8 +39,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version=VERSION_FILE,
-    icon=ICON_FILE,
-    uac_admin=False,
-    uac_uiaccess=False
+    icon='generated-icon.png',
 )
