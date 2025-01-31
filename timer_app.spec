@@ -1,19 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 a = Analysis(
     ['timer_app.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('generated-icon.png', '.')],
+    hiddenimports=['tkinter', 'command_interpreter', 'timer_manager'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
-    optimize=0,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -22,7 +21,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='timer_app',
+    name='TimerAssistant',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -36,4 +35,5 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     version='file_version_info.txt',
+    icon='generated-icon.png'
 )

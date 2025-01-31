@@ -45,7 +45,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pyinstaller --clean --noconsole --onefile --name TimerAssistant --version-file file_version_info.txt timer_app.py"
+args = "pyinstaller --clean --noconsole --onefile timer_app.spec"
 
 [deployment]
 run = ["sh", "-c", "python timer_app.py"]
