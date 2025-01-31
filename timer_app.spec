@@ -7,7 +7,15 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['command_interpreter', 'timer_manager'],
+    hiddenimports=[
+        'command_interpreter', 
+        'timer_manager',
+        'tkinter',
+        'tkinter.ttk',
+        'word2number',
+        're',
+        'threading'
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -42,5 +50,7 @@ exe = EXE(
     entitlements_file=None,
     version='windows_build/file_version_info.txt',
     icon='generated-icon.png',
-    onefile=True  # This will create a single executable file
+    onefile=True,  # Pack everything into a single EXE
+    uac_admin=True,  # Request admin rights when needed
+    uac_uiaccess=False,
 )
