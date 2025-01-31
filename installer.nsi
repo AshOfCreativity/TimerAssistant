@@ -3,16 +3,17 @@
 
 ; Installer basic information
 Name "Timer Assistant"
-OutFile "dist\TimerAssistant-Setup.exe"
+OutFile "TimerAssistant-Setup.exe"
 InstallDir "$PROGRAMFILES64\Timer Assistant"
 RequestExecutionLevel admin
 
 ; Modern UI Settings
 !define MUI_ABORTWARNING
+!define MUI_ICON "generated-icon.png"
+!define MUI_UNICON "generated-icon.png"
 
 ; Pages
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "LICENSE.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -35,12 +36,13 @@ Section "MainSection" SEC01
     FileClose $0
 
     ; Add files
-    File /oname=timer_app.exe "dist\timer_app.exe"
+    File "TimerAssistant.exe"
+    File "generated-icon.png"
 
     ; Create start menu shortcut
     CreateDirectory "$SMPROGRAMS\Timer Assistant"
-    CreateShortcut "$SMPROGRAMS\Timer Assistant\Timer Assistant.lnk" "$INSTDIR\timer_app.exe"
-    CreateShortcut "$DESKTOP\Timer Assistant.lnk" "$INSTDIR\timer_app.exe"
+    CreateShortcut "$SMPROGRAMS\Timer Assistant\Timer Assistant.lnk" "$INSTDIR\TimerAssistant.exe"
+    CreateShortcut "$DESKTOP\Timer Assistant.lnk" "$INSTDIR\TimerAssistant.exe"
 
     ; Write uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -51,6 +53,8 @@ Section "MainSection" SEC01
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
                      "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
+                     "DisplayIcon" "$INSTDIR\generated-icon.png"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
                      "Publisher" "Timer Assistant"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
                      "DisplayVersion" "1.0.0"
@@ -58,9 +62,10 @@ SectionEnd
 
 Section "Uninstall"
     ; Remove files
-    Delete "$INSTDIR\timer_app.exe"
-    Delete "$INSTDIR\LICENSE.txt"
+    Delete "$INSTDIR\TimerAssistant.exe"
+    Delete "$INSTDIR\generated-icon.png"
     Delete "$INSTDIR\Uninstall.exe"
+    Delete "$INSTDIR\LICENSE.txt"
 
     ; Remove shortcuts
     Delete "$SMPROGRAMS\Timer Assistant\Timer Assistant.lnk"
