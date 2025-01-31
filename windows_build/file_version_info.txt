@@ -1,4 +1,3 @@
-# UTF-8
 VSVersionInfo(
   ffi=FixedFileInfo(
     filevers=(1, 0, 0, 0),
@@ -9,20 +8,21 @@ VSVersionInfo(
     fileType=0x1,
     subtype=0x0,
     date=(0, 0)
-    ),
+  ),
   kids=[
     StringFileInfo(
-      [StringTable(
-        u'040904B0',
-        [StringStruct(u'CompanyName', u'Timer Assistant'),
-         StringStruct(u'FileDescription', u'Timer Assistant'),
-         StringStruct(u'FileVersion', u'1.0.0'),
-         StringStruct(u'InternalName', u'timer_assistant'),
-         StringStruct(u'LegalCopyright', u'Copyright (c) 2025'),
-         StringStruct(u'OriginalFilename', u'TimerAssistant.exe'),
-         StringStruct(u'ProductName', u'Timer Assistant'),
-         StringStruct(u'ProductVersion', u'1.0.0')])
-      ]), 
+      [
+        StringTable(
+          u'040904B0',
+          [StringStruct(u'CompanyName', u'Timer Assistant'),
+           StringStruct(u'FileDescription', u'Timer Management Application'),
+           StringStruct(u'FileVersion', u'1.0.0'),
+           StringStruct(u'InternalName', u'timer_app'),
+           StringStruct(u'LegalCopyright', u'Timer Assistant'),
+           StringStruct(u'OriginalFilename', u'TimerAssistant.exe'),
+           StringStruct(u'ProductName', u'Timer Assistant'),
+           StringStruct(u'ProductVersion', u'1.0.0')])
+      ]),
     VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
   ]
 )

@@ -23,6 +23,10 @@ args = "Build Executable"
 task = "workflow.run"
 args = "Build Windows Executable"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Build Single Executable"
+
 [[workflows.workflow]]
 name = "Timer App"
 author = "agent"
@@ -49,10 +53,24 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pyinstaller --clean --onefile timer_app.spec"
+args = "pyinstaller --clean timer_app.spec"
 
 [[workflows.workflow]]
 name = "Build Windows Executable"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pyinstaller --clean timer_app.spec"
+
+[[workflows.workflow]]
+name = "Build Single Executable"
 author = "agent"
 
 [workflows.workflow.metadata]

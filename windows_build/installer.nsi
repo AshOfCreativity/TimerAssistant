@@ -1,80 +1,72 @@
-; Timer Assistant Installer Script
+; Simple installer for Timer Assistant
+; Just creates a single executable with minimal user interaction
+
 !include "MUI2.nsh"
-
-; Installer basic information
-Name "Timer Assistant"
-OutFile "TimerAssistant-Setup.exe"
-InstallDir "$PROGRAMFILES64\Timer Assistant"
-RequestExecutionLevel admin
-
-; Modern UI Settings
-!define MUI_ABORTWARNING
 !define MUI_ICON "generated-icon.png"
-!define MUI_UNICON "generated-icon.png"
+!define APP_NAME "Timer Assistant"
+!define COMP_NAME "Timer Assistant"
+!define VERSION "1.0.0"
+!define COPYRIGHT "Timer Assistant"
+!define DESCRIPTION "Timer Management Application"
+!define LICENSE_TXT "LICENSE"
+!define INSTALLER_NAME "TimerAssistant-Setup.exe"
+!define MAIN_APP_EXE "TimerAssistant.exe"
+!define INSTALL_TYPE "SetShellVarContext current"
+!define REG_ROOT "HKCU"
+!define REG_APP_PATH "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_APP_EXE}"
+!define UNINSTALL_PATH "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 
-; Pages
+!define MUI_ABORTWARNING
+!define MUI_UNABORTWARNING
+
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
-; Uninstaller pages
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
-; Languages
 !insertmacro MUI_LANGUAGE "English"
 
-Section "MainSection" SEC01
+Name "${APP_NAME}"
+OutFile "${INSTALLER_NAME}"
+InstallDir "$PROGRAMFILES\${APP_NAME}"
+ShowInstDetails show
+ShowUnInstDetails show
+
+Section -MainProgram
+    ${INSTALL_TYPE}
+    SetOverwrite ifnewer
     SetOutPath "$INSTDIR"
-
-    ; Create LICENSE.txt if it doesn't exist
-    FileOpen $0 "$INSTDIR\LICENSE.txt" w
-    FileWrite $0 "Timer Assistant License$\r$\n"
-    FileWrite $0 "Copyright (c) 2025$\r$\n"
-    FileWrite $0 "All rights reserved.$\r$\n"
-    FileClose $0
-
-    ; Add files
     File "TimerAssistant.exe"
-    File "generated-icon.png"
-
-    ; Create start menu shortcut
-    CreateDirectory "$SMPROGRAMS\Timer Assistant"
-    CreateShortcut "$SMPROGRAMS\Timer Assistant\Timer Assistant.lnk" "$INSTDIR\TimerAssistant.exe"
-    CreateShortcut "$DESKTOP\Timer Assistant.lnk" "$INSTDIR\TimerAssistant.exe"
-
-    ; Write uninstaller
-    WriteUninstaller "$INSTDIR\Uninstall.exe"
-
-    ; Add uninstall information to Add/Remove Programs
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
-                     "DisplayName" "Timer Assistant"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
-                     "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
-                     "DisplayIcon" "$INSTDIR\generated-icon.png"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
-                     "Publisher" "Timer Assistant"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant" \
-                     "DisplayVersion" "1.0.0"
 SectionEnd
 
-Section "Uninstall"
-    ; Remove files
-    Delete "$INSTDIR\TimerAssistant.exe"
-    Delete "$INSTDIR\generated-icon.png"
-    Delete "$INSTDIR\Uninstall.exe"
-    Delete "$INSTDIR\LICENSE.txt"
+Section -Icons_Reg
+    SetOutPath "$INSTDIR"
+    CreateDirectory "$SMPROGRAMS\${APP_NAME}"
+    CreateShortCut "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+    CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+SectionEnd
 
-    ; Remove shortcuts
-    Delete "$SMPROGRAMS\Timer Assistant\Timer Assistant.lnk"
-    Delete "$DESKTOP\Timer Assistant.lnk"
-    RMDir "$SMPROGRAMS\Timer Assistant"
+Section -Post
+    WriteUninstaller "$INSTDIR\uninstall.exe"
+    WriteRegStr ${REG_ROOT} "${REG_APP_PATH}" "" "$INSTDIR\${MAIN_APP_EXE}"
+    WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "DisplayName" "${APP_NAME}"
+    WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "UninstallString" "$INSTDIR\uninstall.exe"
+    WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "DisplayIcon" "$INSTDIR\${MAIN_APP_EXE}"
+    WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "DisplayVersion" "${VERSION}"
+    WriteRegStr ${REG_ROOT} "${UNINSTALL_PATH}" "Publisher" "${COMP_NAME}"
+SectionEnd
 
-    ; Remove installation directory
+Section Uninstall
+    ${INSTALL_TYPE}
+    Delete "$INSTDIR\${MAIN_APP_EXE}"
+    Delete "$INSTDIR\uninstall.exe"
     RMDir "$INSTDIR"
-
-    ; Remove registry entries
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TimerAssistant"
+    Delete "$DESKTOP\${APP_NAME}.lnk"
+    Delete "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk"
+    RMDir "$SMPROGRAMS\${APP_NAME}"
+    DeleteRegKey ${REG_ROOT} "${REG_APP_PATH}"
+    DeleteRegKey ${REG_ROOT} "${UNINSTALL_PATH}"
 SectionEnd
