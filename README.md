@@ -1,3 +1,4 @@
+
 # Timer Management Application
 
 A text-based timer management application that allows you to create and manage multiple timers through text commands with a graphical interface.
@@ -11,39 +12,34 @@ A text-based timer management application that allows you to create and manage m
 - Natural language command support
 - Side panel display of active timers
 
-## Download and Use
+## Windows 11 Installation
 
-1. Download `TimerAssistant.exe`
-2. Double-click to run
-3. That's it! No installation needed.
+1. Download the installer (`TimerAssistant-Setup.exe`) from the Releases section
+2. Run the installer - it will automatically:
+   - Install in Program Files
+   - Create desktop and start menu shortcuts
+   - Set up sound alerts
+   - Install required .NET Framework if needed
+3. Launch "Timer Assistant" from desktop shortcut or start menu
 
-## Usage
+## Using the Timer
 
-1. Start the application by running `TimerAssistant.exe`
-2. Type `help` to see available commands
-
-### Example Commands
-
-- "set a 5 minute timer for coffee break"
-- "start a 25 min pomodoro timer"
-- "create 1 hour meeting timer"
-- "pause the coffee timer"
-- "show all timers"
-- "stop meeting timer"
-
-The application will understand your intent and execute the command.
-
-## Offline Use
-
-This application works completely offline. Once downloaded, no internet connection is required.
+1. Type commands in natural language like:
+   - "set a 5 minute timer for coffee break"
+   - "start a 25 min pomodoro timer"
+   - "create 1 hour meeting timer"
+2. Use commands to manage timers:
+   - "pause the coffee timer"
+   - "show all timers"
+   - "stop meeting timer"
 
 ## Troubleshooting
 
-### Application Won't Start
-- Make sure you're running Windows 10 or 11
-- Try running as administrator
-- Check if Windows Defender/antivirus isn't blocking the application
+### No Sound Alerts
+- Check Windows sound settings
+- Make sure system volume is not muted
+- Try running the app as administrator
 
-## Support
-
-For issues or feature requests, please create an issue in the project repository.
+### Other Issues
+- Make sure you have Windows 10 or 11
+- Check Windows Defender is not blocking the application
