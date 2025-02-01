@@ -24,6 +24,7 @@ a = Analysis(
     win_private_assemblies=False,
     cipher=block_cipher,
     noarchive=False,
+    target_platform='win32'  # Force Windows target
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)

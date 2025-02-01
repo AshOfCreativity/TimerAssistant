@@ -96,12 +96,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "pyinstaller" },
+    { name = "pyinstaller-hooks-contrib" },
     { name = "word2number" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "pyinstaller", specifier = ">=6.11.1" },
+    { name = "pyinstaller-hooks-contrib", specifier = ">=2025.0" },
     { name = "word2number", specifier = ">=1.1" },
 ]
 
