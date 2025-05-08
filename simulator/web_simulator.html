@@ -16,29 +16,43 @@
     }
     .extension-window {
       width: 400px;
-      height: 600px;
+      height: 500px;
       border: 1px solid #ccc;
       border-radius: 8px;
       background: white;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       overflow: hidden;
     }
+    .chrome-bar {
+      height: 30px;
+      background: #f1f3f4;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      color: #5f6368;
+    }
   </style>
 </head>
 <body>
   <div class="extension-window">
-    <div class="container">
-      <h1>Timer Assistant</h1>
-      <div class="input-container">
-        <input type="text" id="command-input" placeholder="e.g., 'set a 5 minute coffee break timer'" autofocus>
-        <button id="submit-btn">Enter</button>
-      </div>
-      <div class="output-container">
-        <div id="output-text"></div>
-      </div>
-      <div class="timers-container">
-        <h2>Active Timers</h2>
-        <div id="active-timers"></div>
+    <div class="chrome-bar">Timer Assistant</div>
+    <div id="popup-content">
+      <div class="container">
+        <h1>Timer Assistant</h1>
+        <div class="input-container">
+          <input type="text" id="command-input" placeholder="e.g., 'set a 5 minute coffee break timer'" autofocus>
+          <button id="submit-btn">Enter</button>
+        </div>
+        <div class="output-container">
+          <div id="output-text"></div>
+        </div>
+        <div class="timers-container">
+          <h2>Active Timers</h2>
+          <div id="active-timers"></div>
+        </div>
       </div>
     </div>
   </div>

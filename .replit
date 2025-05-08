@@ -101,6 +101,15 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "pyinstaller --clean timer_app.spec && cd windows_build && ./build_installer.bat"
 
+[[workflows.workflow]]
+name = "Simulator Server"
+author = 34172934
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd simulator && python -m http.server 8000"
+
 [deployment]
 run = ["sh", "-c", "python timer_app.py"]
 
