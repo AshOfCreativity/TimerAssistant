@@ -103,3 +103,7 @@ args = "pyinstaller --clean timer_app.spec && cd windows_build && ./build_instal
 
 [deployment]
 run = ["sh", "-c", "python timer_app.py"]
+
+[[ports]]
+localPort = 8000
+externalPort = 80
