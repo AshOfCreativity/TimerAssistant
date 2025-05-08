@@ -12,7 +12,7 @@ externalPort = 80
 run = "cd simulator && python -m http.server 8000"
 
 [workflows]
-runButton = "Serve Simulator"
+runButton = "Run Web Simulator"
 
 [[workflows.workflow]]
 name = "Project"
@@ -110,10 +110,10 @@ task = "shell.exec"
 args = "pyinstaller --clean timer_app.spec && cd windows_build && ./build_installer.bat"
 
 [[workflows.workflow]]
-name = "Serve Simulator"
+name = "Run Web Simulator"
 author = 34172934
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx http-server simulator -p 8000 -a 0.0.0.0"
+args = "cd simulator && python -m http.server 8000 --bind 0.0.0.0"
