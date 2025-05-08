@@ -1,3 +1,4 @@
+
 {
   "manifest_version": 3,
   "name": "Timer Assistant",
@@ -17,11 +18,17 @@
     }
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "permissions": [
     "storage",
     "alarms",
-    "notifications"
+    "notifications",
+    "audio",
+    "background"
+  ],
+  "host_permissions": [
+    "*://*/*"
   ]
 }

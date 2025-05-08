@@ -2,58 +2,97 @@
 // Background script for Timer Assistant
 const timerManager = new TimerManager();
 
-// Play alarm sound when a timer completes
-function playAlertSound() {
-  const audio = new Audio('sounds/alert.mp3');
-  audio.loop = false;
-  audio.volume = 1.0;
-  
-  // Browser requires user interaction before playing audio
-  const playPromise = audio.play();
-  
-  if (playPromise !== undefined) {
-    playPromise
-      .then(() => {
-        console.log('Alert sound played successfully');
-      })
-      .catch(error => {
-        console.error('Failed to play alert sound:', error);
-        // Fallback to notification sound
-        chrome.notifications.create('', {
-          type: 'basic',
-          iconUrl: 'images/icon128.png',
-          title: 'Timer Complete',
-          message: 'Timer finished!',
-          priority: 2,
-          silent: false
-        });
-      });
+// Sound handling with fallbacks
+class SoundPlayer {
+  constructor() {
+    this.audioContext = null;
+    this.soundBuffer = null;
+    this.fallbackAudio = null;
+    this.initializeAudio();
+  }
+
+  async initializeAudio() {
+    try {
+      // Try Web Audio API first
+      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const response = await fetch('sounds/alert.mp3');
+      const arrayBuffer = await response.arrayBuffer();
+      this.soundBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+    } catch (e) {
+      console.log('Web Audio API failed, using fallback:', e);
+      // Fallback to HTML5 Audio
+      this.fallbackAudio = new Audio('sounds/alert.mp3');
+    }
+  }
+
+  async play() {
+    try {
+      if (this.audioContext && this.soundBuffer) {
+        const source = this.audioContext.createBufferSource();
+        source.buffer = this.soundBuffer;
+        source.connect(this.audioContext.destination);
+        source.start(0);
+        return true;
+      } else if (this.fallbackAudio) {
+        await this.fallbackAudio.play();
+        return true;
+      }
+    } catch (e) {
+      console.error('Sound playback failed:', e);
+      return false;
+    }
+    return false;
   }
 }
 
-// Listen for alarms (timer completions)
+const soundPlayer = new SoundPlayer();
+
+// Play alarm sound with fallbacks
+async function playAlertSound() {
+  const soundSuccess = await soundPlayer.play();
+  
+  if (!soundSuccess) {
+    // Final fallback - system notification with sound
+    chrome.notifications.create('', {
+      type: 'basic',
+      iconUrl: 'images/icon128.png',
+      title: 'Timer Complete',
+      message: 'Timer finished!',
+      priority: 2,
+      silent: false
+    });
+  }
+}
+
+// Ensure extension stays active
+chrome.runtime.onStartup.addListener(() => {
+  timerManager.loadTimers();
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+  timerManager.loadTimers();
+});
+
+// Listen for alarms
 chrome.alarms.onAlarm.addListener((alarm) => {
-  // Check if this is a timer alarm
   if (alarm.name.startsWith('timer_')) {
-    // Extract timer name from alarm name
     const timerName = alarm.name.split('_')[1];
     
-    // Show notification
     chrome.notifications.create(`notification_${timerName}`, {
       type: 'basic',
       iconUrl: 'images/icon128.png',
       title: 'Timer Complete',
       message: `Your "${timerName}" timer has finished!`,
       priority: 2,
+      requireInteraction: true,
       silent: false
     });
     
-    // Play sound
     playAlertSound();
   }
 });
 
-// Listen for messages from the popup
+// Message handling
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.action) {
     case 'createTimer':
@@ -79,14 +118,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
   }
   
-  // Save state after any changes
   timerManager.saveTimers();
   return true;
 });
 
-// Initialize when extension is installed/updated
-chrome.runtime.onInstalled.addListener(() => {
-  console.log('Timer Assistant Extension installed');
-  // Load any saved timers
-  timerManager.loadTimers();
-});
+// Keep alive
+setInterval(() => {
+  chrome.runtime.getPlatformInfo(() => {
+    if (chrome.runtime.lastError) {
+      console.log('Keeping extension alive');
+    }
+  });
+}, 20000);
