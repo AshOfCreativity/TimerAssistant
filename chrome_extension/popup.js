@@ -5,12 +5,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const outputText = document.getElementById('output-text');
   const activeTimersContainer = document.getElementById('active-timers');
 
-  // Initialize the command interpreter and timer manager
+  // Initialize the command interpreter
   const commandInterpreter = new CommandInterpreter();
-  const timerManager = new TimerManager();
+  
+  // Function to sync with background timer state
+  function syncWithBackground() {
+    chrome.runtime.sendMessage({ action: 'getTimers' }, response => {
+      if (response && response.timers) {
+        Object.entries(response.timers).forEach(([name, timer]) => {
+          updateTimerDisplay(name, timer.formatTime(timer.remaining), 
+            timer.paused ? "paused" : "running");
+        });
+      }
+    });
+  }
 
-  // Set up the output callback
-  timerManager.setOutputCallback((message) => {
+  // Set up message handling for timer updates
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'timerUpdate') {
+      updateTimerDisplay(message.name, message.timeStr, message.status);
+    }
+  });
+
+  // Process commands through background
+  function processCommand(command) {
+    chrome.runtime.sendMessage({
+      action: 'createTimer',
+      name: command.name,
+      duration: command.duration
+    });
+  }
+
+  // Sync with background state when popup opens
+  syncWithBackground();
+  
+  // Set up the output display
+  function appendOutput(message) => {
     // Check if this is a timer update message
     const timerUpdateMatch = message.match(/\[(.*?)\]:\s*(.*)/);
     

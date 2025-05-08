@@ -1,4 +1,6 @@
+
 // Background script for Timer Assistant
+const timerManager = new TimerManager();
 
 // Play alarm sound when a timer completes
 function playAlertSound() {
@@ -31,38 +33,40 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-// Listen for notification clicks
-chrome.notifications.onClicked.addListener((notificationId) => {
-  // If it's a timer notification, open the popup
-  if (notificationId.startsWith('notification_')) {
-    chrome.action.openPopup();
-  }
-});
-
 // Listen for messages from the popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'playAlert') {
-    playAlertSound();
-    sendResponse({ success: true });
-  } else if (message.action === 'stopAlert') {
-    // Stop alert sound if implemented
-    sendResponse({ success: true });
-  } else if (message.action === 'deleteTimer') {
-    // Clear any alarms for this timer
-    chrome.alarms.getAll((alarms) => {
-      alarms.forEach((alarm) => {
-        if (alarm.name.includes(message.name)) {
-          chrome.alarms.clear(alarm.name);
-        }
-      });
-    });
-    sendResponse({ success: true });
+  switch (message.action) {
+    case 'createTimer':
+      timerManager.createTimer(message.name, message.duration);
+      break;
+    case 'getTimers':
+      sendResponse({ timers: timerManager.timers });
+      break;
+    case 'pauseTimer':
+      timerManager.pauseTimer(message.name);
+      break;
+    case 'resumeTimer':
+      timerManager.resumeTimer(message.name);
+      break;
+    case 'stopTimer':
+      timerManager.stopTimer(message.name);
+      break;
+    case 'deleteTimer':
+      timerManager.deleteTimer(message.name);
+      break;
+    case 'playAlert':
+      playAlertSound();
+      break;
   }
   
-  return true; // Indicate we will send a response asynchronously
+  // Save state after any changes
+  timerManager.saveTimers();
+  return true;
 });
 
 // Initialize when extension is installed/updated
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Timer Assistant Extension installed');
+  // Load any saved timers
+  timerManager.loadTimers();
 });
