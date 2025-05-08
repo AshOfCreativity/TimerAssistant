@@ -207,7 +207,7 @@ The assistant will understand your intent and execute the command.`;
 
   // Set up event listeners
   submitBtn.addEventListener('click', processCommand);
-  commandInput.addEventListener('keypress', (event) => {
+  commandInput.addEventListener('keypress', function(event) {
     if (event.key === 'Enter') {
       processCommand();
     }
