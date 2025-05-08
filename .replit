@@ -1,118 +1,12 @@
-modules = ["python-3.11"]
+run = "cd simulator && python -m http.server 8000"
+modules = []
 
 [nix]
 channel = "stable-24_05"
 
-[workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Timer App"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Build Executable"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Build Windows Executable"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Build Single Executable"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Build Windows Package"
-
-[[workflows.workflow]]
-name = "Timer App"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python timer_app.py"
-
-[[workflows.workflow]]
-name = "Build Executable"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pyinstaller --clean timer_app.spec"
-
-[[workflows.workflow]]
-name = "Build Windows Executable"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pyinstaller --clean timer_app.spec"
-
-[[workflows.workflow]]
-name = "Build Single Executable"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pyinstaller --clean timer_app.spec"
-
-[[workflows.workflow]]
-name = "Build Windows Package"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pyinstaller --clean timer_app.spec && cd windows_build && ./build_installer.bat"
-
-[[workflows.workflow]]
-name = "Simulator Server"
-author = 34172934
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd simulator && python -m http.server 8000"
-
-[deployment]
-run = ["sh", "-c", "python timer_app.py"]
-
 [[ports]]
 localPort = 8000
 externalPort = 80
+
+[deployment]
+run = "cd simulator && python -m http.server 8000"
