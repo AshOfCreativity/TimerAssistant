@@ -1,0 +1,130 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  width: 400px;
+  height: 500px;
+  overflow-y: auto;
+}
+
+.container {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+h1 {
+  font-size: 18px;
+  margin: 0 0 15px 0;
+  text-align: center;
+  color: #333;
+}
+
+h2 {
+  font-size: 14px;
+  margin: 10px 0;
+  color: #555;
+}
+
+.input-container {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+#command-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px;
+  font-size: 14px;
+}
+
+#submit-btn {
+  padding: 8px 15px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+
+#submit-btn:hover {
+  background-color: #3367d6;
+}
+
+.output-container {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 150px;
+}
+
+#output-text {
+  font-size: 13px;
+  color: #333;
+  white-space: pre-wrap;
+}
+
+.timers-container {
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+#active-timers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timer-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border-left: 3px solid #4285f4;
+}
+
+.timer-running {
+  border-left-color: #4285f4;
+}
+
+.timer-paused {
+  border-left-color: #fbbc05;
+}
+
+.timer-complete {
+  border-left-color: #34a853;
+}
+
+.timer-name {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.timer-time {
+  margin-right: auto;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.timer-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 3px;
+}
+
+.timer-btn:hover {
+  background-color: #e0e0e0;
+}

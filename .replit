@@ -1,5 +1,5 @@
 run = "cd simulator && python -m http.server 8000"
-modules = []
+modules = ["nodejs-20"]
 
 [nix]
 channel = "stable-24_05"
