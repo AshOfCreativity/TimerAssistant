@@ -6,9 +6,29 @@ const timerManager = new TimerManager();
 function playAlertSound() {
   const audio = new Audio('sounds/alert.mp3');
   audio.loop = false;
-  audio.play().catch(error => {
-    console.error('Failed to play alert sound:', error);
-  });
+  audio.volume = 1.0;
+  
+  // Browser requires user interaction before playing audio
+  const playPromise = audio.play();
+  
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        console.log('Alert sound played successfully');
+      })
+      .catch(error => {
+        console.error('Failed to play alert sound:', error);
+        // Fallback to notification sound
+        chrome.notifications.create('', {
+          type: 'basic',
+          iconUrl: 'images/icon128.png',
+          title: 'Timer Complete',
+          message: 'Timer finished!',
+          priority: 2,
+          silent: false
+        });
+      });
+  }
 }
 
 // Listen for alarms (timer completions)

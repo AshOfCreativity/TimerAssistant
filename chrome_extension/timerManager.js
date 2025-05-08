@@ -28,7 +28,7 @@ class Timer {
     this.callback = callback;
     this.running = true;
     this.paused = false;
-    
+
     // Clear any existing interval
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -43,11 +43,11 @@ class Timer {
     this.intervalId = setInterval(() => {
       if (!this.paused && this.running) {
         this.remaining--;
-        
+
         if (this.callback) {
           this.callback(`[${this.name}]: ${this.formatTime(this.remaining)}`);
         }
-        
+
         if (this.remaining <= 0) {
           this.complete();
         }
@@ -80,7 +80,7 @@ class Timer {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
-    
+
     // Clear the alarm
     chrome.alarms.clear(this.alarmName);
 
@@ -94,17 +94,19 @@ class Timer {
     if (this.callback) {
       this.callback(`[${this.name}]: Complete!`);
     }
-    
+
     // Show a notification
     chrome.notifications.create(`notification_${this.name}`, {
       type: 'basic',
       iconUrl: 'images/icon128.png',
       title: 'Timer Complete',
       message: `Your "${this.name}" timer has finished!`,
-      priority: 2
+      priority: 2,
+      silent: false
     });
-    
-    // Play sound (will be handled in background.js since this runs in the popup)
+
+    // Send message to background script to play sound
+    chrome.runtime.sendMessage({ action: 'playAlert' });
   }
 }
 
@@ -136,7 +138,7 @@ class TimerManager {
         this.timers[name].running = true;
         this.timers[name].paused = false;
         this._print(`Refreshed timer '${name}' (${this.timers[name].formatTime(duration)})`);
-        
+
         // Start the timer
         this.startTimer(name);
         return;
@@ -297,7 +299,7 @@ class TimerManager {
   // Save timers to Chrome storage
   saveTimers() {
     const timersData = {};
-    
+
     for (const [name, timer] of Object.entries(this.timers)) {
       timersData[name] = {
         name: timer.name,
@@ -308,7 +310,7 @@ class TimerManager {
         alerting: timer.alerting
       };
     }
-    
+
     chrome.storage.local.set({ 'timers': timersData });
   }
 
@@ -322,9 +324,9 @@ class TimerManager {
           timer.running = timerData.running;
           timer.paused = timerData.paused;
           timer.alerting = timerData.alerting;
-          
+
           this.timers[name] = timer;
-          
+
           // Restart running timers
           if (timer.running && !timer.paused && !timer.alerting) {
             timer.start((message) => {
@@ -333,7 +335,7 @@ class TimerManager {
           }
         }
       }
-      
+
       if (callback) callback();
     });
   }
