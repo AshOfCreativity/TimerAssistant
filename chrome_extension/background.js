@@ -14,7 +14,12 @@ class SoundPlayer {
   async initializeAudio() {
     try {
       // Try Web Audio API first
+      this.audioContext = null;
+    try {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.warn('Audio Context not available:', e);
+    }
       const response = await fetch('sounds/alert.mp3');
       const arrayBuffer = await response.arrayBuffer();
       this.soundBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
