@@ -5,7 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const outputText = document.getElementById('output-text');
   const activeTimersContainer = document.getElementById('active-timers');
 
-  // Initialize the command interpreter
+  // Initialize the timer manager and command interpreter
+  const timerManager = new TimerManager();
   const commandInterpreter = new CommandInterpreter();
 
   // Function to sync with background timer state
