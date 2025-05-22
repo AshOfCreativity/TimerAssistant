@@ -81,6 +81,18 @@ class TimerApp:
         )
         self.output_text.pack(fill=tk.BOTH, expand=True)
         self.scrollbar.config(command=self.output_text.yview)
+        
+        # Button frame at bottom of left pane
+        button_frame = ttk.Frame(self.left_pane)
+        button_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # Audio Settings button
+        audio_button = ttk.Button(button_frame, text="Audio Settings", command=self.show_audio_settings)
+        audio_button.pack(side=tk.LEFT, padx=5)
+        
+        # Help button
+        help_button = ttk.Button(button_frame, text="Help", command=self.show_help)
+        help_button.pack(side=tk.RIGHT, padx=5)
 
     def setup_right_pane(self):
         # Active Timers label
@@ -114,6 +126,99 @@ The assistant will understand your intent and execute the command.
 """
         self.output_text.delete('1.0', tk.END)
         self.output_text.insert('1.0', help_text)
+    
+    def show_audio_settings(self):
+        """Show audio settings window"""
+        settings_window = tk.Toplevel(self.root)
+        settings_window.title("Audio Settings")
+        settings_window.geometry("400x350")
+        settings_window.resizable(False, False)
+        
+        # Get current settings
+        current_settings = self.timer_manager.alert_manager.get_audio_settings()
+        
+        # Frequency setting
+        freq_frame = ttk.Frame(settings_window)
+        freq_frame.pack(fill=tk.X, padx=20, pady=10)
+        ttk.Label(freq_frame, text="Beep Frequency (Hz):").pack(anchor=tk.W)
+        freq_var = tk.IntVar(value=current_settings['frequency'])
+        freq_scale = ttk.Scale(freq_frame, from_=200, to=2000, variable=freq_var, orient=tk.HORIZONTAL)
+        freq_scale.pack(fill=tk.X, pady=5)
+        freq_label = ttk.Label(freq_frame, text=f"{freq_var.get()} Hz")
+        freq_label.pack()
+        
+        # Duration setting
+        dur_frame = ttk.Frame(settings_window)
+        dur_frame.pack(fill=tk.X, padx=20, pady=10)
+        ttk.Label(dur_frame, text="Beep Duration (ms):").pack(anchor=tk.W)
+        dur_var = tk.IntVar(value=current_settings['duration'])
+        dur_scale = ttk.Scale(dur_frame, from_=100, to=2000, variable=dur_var, orient=tk.HORIZONTAL)
+        dur_scale.pack(fill=tk.X, pady=5)
+        dur_label = ttk.Label(dur_frame, text=f"{dur_var.get()} ms")
+        dur_label.pack()
+        
+        # Interval setting
+        int_frame = ttk.Frame(settings_window)
+        int_frame.pack(fill=tk.X, padx=20, pady=10)
+        ttk.Label(int_frame, text="Interval Between Beeps (seconds):").pack(anchor=tk.W)
+        int_var = tk.DoubleVar(value=current_settings['interval'])
+        int_scale = ttk.Scale(int_frame, from_=0.1, to=5.0, variable=int_var, orient=tk.HORIZONTAL)
+        int_scale.pack(fill=tk.X, pady=5)
+        int_label = ttk.Label(int_frame, text=f"{int_var.get():.1f} sec")
+        int_label.pack()
+        
+        # Notification timeout setting
+        timeout_frame = ttk.Frame(settings_window)
+        timeout_frame.pack(fill=tk.X, padx=20, pady=10)
+        ttk.Label(timeout_frame, text="Max Alert Duration (seconds):").pack(anchor=tk.W)
+        timeout_var = tk.IntVar(value=self.timer_manager.alert_manager.alert_timeout)
+        timeout_scale = ttk.Scale(timeout_frame, from_=10, to=600, variable=timeout_var, orient=tk.HORIZONTAL)
+        timeout_scale.pack(fill=tk.X, pady=5)
+        timeout_label = ttk.Label(timeout_frame, text=f"{timeout_var.get()} sec")
+        timeout_label.pack()
+        
+        # Update labels when scales change
+        def update_freq_label(*args):
+            freq_label.config(text=f"{freq_var.get()} Hz")
+        def update_dur_label(*args):
+            dur_label.config(text=f"{dur_var.get()} ms")
+        def update_int_label(*args):
+            int_label.config(text=f"{int_var.get():.1f} sec")
+        def update_timeout_label(*args):
+            timeout_label.config(text=f"{timeout_var.get()} sec")
+            
+        freq_var.trace('w', update_freq_label)
+        dur_var.trace('w', update_dur_label)
+        int_var.trace('w', update_int_label)
+        timeout_var.trace('w', update_timeout_label)
+        
+        # Buttons
+        button_frame = ttk.Frame(settings_window)
+        button_frame.pack(fill=tk.X, padx=20, pady=20)
+        
+        def apply_settings():
+            self.timer_manager.alert_manager.set_audio_settings(
+                frequency=freq_var.get(),
+                duration=dur_var.get(),
+                interval=int_var.get()
+            )
+            self.timer_manager.alert_manager.alert_timeout = timeout_var.get()
+            self.print_output("Audio settings updated!")
+            settings_window.destroy()
+        
+        def test_beep():
+            try:
+                if hasattr(self.timer_manager.alert_manager, 'WINSOUND_AVAILABLE') and self.timer_manager.alert_manager.WINSOUND_AVAILABLE:
+                    import winsound
+                    winsound.Beep(freq_var.get(), dur_var.get())
+                else:
+                    print("\a")  # Fallback beep
+            except:
+                print("\a")  # Fallback beep
+        
+        ttk.Button(button_frame, text="Test Beep", command=test_beep).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Apply", command=apply_settings).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=settings_window.destroy).pack(side=tk.RIGHT)
 
     def update_timer_display(self, name: str, time_str: str, status: str):
         """Update or create a timer display in the right pane"""

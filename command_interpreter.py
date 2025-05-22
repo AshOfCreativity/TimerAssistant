@@ -132,10 +132,15 @@ class CommandInterpreter:
                 # Extract timer name (everything after the command word)
                 for indicator in indicators:
                     if indicator in text:
-                        name = text.split(indicator)[-1].strip()
-                        name = re.sub(r'^(the|a|an)\s+', '', name)  # Remove leading "the" or "a"
-                        name = name.replace('timer', '').strip()  # Remove "timer"
-                        return {"type": command_type, "name": name or "timer"}
+                        parts = text.split(indicator, 1)
+                        if len(parts) > 1:
+                            name = parts[1].strip()
+                            name = re.sub(r'^(the|a|an)\s+', '', name)  # Remove leading "the" or "a"
+                            name = name.replace('timer', '').strip()  # Remove "timer"
+                            if name:  # Only return if we found a specific name
+                                return {"type": command_type, "name": name}
+                        # If no specific name found, return default
+                        return {"type": command_type, "name": "timer"}
 
         # Handle create/start command
         duration = self._extract_duration(text)
