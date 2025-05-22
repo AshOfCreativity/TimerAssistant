@@ -1,5 +1,5 @@
 run = "cd simulator && python -m http.server 8000"
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
@@ -12,7 +12,7 @@ externalPort = 80
 run = "cd simulator && python -m http.server 8000"
 
 [workflows]
-runButton = "Run Web Simulator"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -38,6 +38,10 @@ args = "Build Single Executable"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Build Windows Package"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Build Portable Executable"
 
 [[workflows.workflow]]
 name = "Timer App"
@@ -117,3 +121,11 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd simulator && python -m http.server 8000 --bind 0.0.0.0"
+
+[[workflows.workflow]]
+name = "Build Portable Executable"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pyinstaller --onefile --windowed --name TimerAssistant timer_app.py"
