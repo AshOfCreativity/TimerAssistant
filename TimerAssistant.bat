@@ -14,11 +14,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Check if required packages are available
-python -c "import tkinter; import threading; import time; import re" >nul 2>&1
+REM Check if word2number package is available
+python -c "import word2number" >nul 2>&1
 if errorlevel 1 (
     echo Installing required packages...
+    echo This may take a moment...
     pip install word2number
+    if errorlevel 1 (
+        echo Failed to install word2number package.
+        echo Please try running: pip install word2number
+        echo.
+        pause
+        exit /b 1
+    )
+    echo Package installation complete!
+    echo.
 )
 
 REM Run the timer application
