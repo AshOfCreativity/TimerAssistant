@@ -200,6 +200,28 @@ class TimerManager:
         self.alert_manager.stop_all_alerts()
         for name in list(self.timers.keys()):
             self.stop_timer(name)
+    
+    def clear_all_timers(self) -> None:
+        """Clear all timers (stop and delete them)"""
+        if not self.timers:
+            self._print("No timers to clear")
+            return
+        
+        # Stop all alerts first
+        self.alert_manager.stop_all_alerts()
+        
+        # Get list of timer names
+        timer_names = list(self.timers.keys())
+        
+        # Clear all timers
+        self.timers.clear()
+        
+        self._print(f"Cleared {len(timer_names)} timer(s): {', '.join(timer_names)}")
+        
+        # Notify the UI to remove all timer displays
+        if hasattr(self, 'ui_update_callback') and self.ui_update_callback:
+            for name in timer_names:
+                self.ui_update_callback('remove_timer', name)
 
     def execute_command(self, command: dict) -> None:
         cmd_type = command["type"]
@@ -218,3 +240,5 @@ class TimerManager:
             self.delete_timer(command["name"])
         elif cmd_type == "list":
             self.list_timers()
+        elif cmd_type == "clear":
+            self.clear_all_timers()

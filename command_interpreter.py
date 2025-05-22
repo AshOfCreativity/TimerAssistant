@@ -117,6 +117,10 @@ class CommandInterpreter:
         # Check for list command
         if any(indicator in text for indicator in self.list_indicators):
             return {"type": "list"}
+        
+        # Check for clear all timers command
+        if any(word in text for word in ['clear', 'delete', 'remove']) and any(word in text for word in ['all', 'everything', 'timers']):
+            return {"type": "clear"}
 
         # Check for pause/resume/stop commands
         for command_type, indicators in [

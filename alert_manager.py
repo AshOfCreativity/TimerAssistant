@@ -4,23 +4,33 @@ import subprocess
 from typing import Dict, Optional
 import os
 
+try:
+    import winsound
+    WINSOUND_AVAILABLE = True
+except ImportError:
+    WINSOUND_AVAILABLE = False
+
 class AlertManager:
     def __init__(self):
         self.active_alerts: Dict[str, threading.Thread] = {}
         self.alert_stop_flags: Dict[str, bool] = {}
         self.alert_timeout = 120  # 2 minutes in seconds
+        self.volume = 100  # Volume percentage (1-100)
+        self.beep_frequency = 880  # Hz
+        self.beep_duration = 500  # milliseconds
+        self.beep_interval = 1.0  # seconds between beeps
 
     def _play_alert(self, timer_name: str):
         """Play a beep sound repeatedly until stopped"""
         while not self.alert_stop_flags.get(timer_name, True):
-            # Use sox 'play' command to generate a beep
             try:
-                subprocess.run(
-                    ['play', '-n', 'synth', '0.1', 'sine', '880', 'vol', '0.3'],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-                time.sleep(1)  # Pause between beeps
+                if WINSOUND_AVAILABLE:
+                    # Use Windows beep with configurable settings
+                    winsound.Beep(self.beep_frequency, self.beep_duration)
+                else:
+                    # Fallback for non-Windows systems
+                    print(f"\a")  # ASCII bell
+                time.sleep(self.beep_interval)
             except Exception as e:
                 print(f"Error playing alert: {str(e)}")
                 # If sound fails, try a simple print
@@ -64,3 +74,20 @@ class AlertManager:
         """Stop all active alerts"""
         for timer_name in list(self.active_alerts.keys()):
             self.stop_alert(timer_name)
+    
+    def set_audio_settings(self, frequency: int = None, duration: int = None, interval: float = None):
+        """Update audio settings for notifications"""
+        if frequency is not None:
+            self.beep_frequency = max(37, min(32767, frequency))  # Windows beep limits
+        if duration is not None:
+            self.beep_duration = max(10, min(5000, duration))  # Reasonable duration limits
+        if interval is not None:
+            self.beep_interval = max(0.1, min(10.0, interval))  # Reasonable interval limits
+    
+    def get_audio_settings(self):
+        """Get current audio settings"""
+        return {
+            'frequency': self.beep_frequency,
+            'duration': self.beep_duration,
+            'interval': self.beep_interval
+        }
