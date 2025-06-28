@@ -12,11 +12,12 @@ class CommandInterpreter:
         }
 
         # Command type indicators with more variations
-        self.create_indicators = {'set', 'create', 'make', 'start', 'begin', 'add', 'new'}
-        self.pause_indicators = {'pause', 'hold', 'wait', 'suspend', 'freeze'}
-        self.resume_indicators = {'resume', 'continue', 'unpause', 'start again', 'unfreeze'}
-        self.stop_indicators = {'stop', 'end', 'cancel', 'delete', 'remove', 'clear'}
-        self.list_indicators = {'list', 'show', 'display', 'view', 'what', 'status'}
+        self.create_indicators = {'set', 'create', 'make', 'start', 'begin', 'add', 'new', 'timer'}
+        self.pause_indicators = {'pause', 'hold', 'wait', 'suspend', 'freeze', 'stop'}
+        self.resume_indicators = {'resume', 'continue', 'unpause', 'restart', 'unfreeze', 'go'}
+        self.stop_indicators = {'stop', 'end', 'cancel', 'kill', 'terminate', 'abort'}
+        self.delete_indicators = {'delete', 'remove', 'clear', 'destroy'}
+        self.list_indicators = {'list', 'show', 'display', 'view', 'what', 'status', 'timers'}
 
     def _extract_duration(self, text: str) -> Optional[int]:
         """Extract duration from text in various formats."""
@@ -60,10 +61,11 @@ class CommandInterpreter:
                 matches = re.finditer(pattern, text)
                 for match in matches:
                     try:
+                        from word2number import w2n
                         number = w2n.word_to_num(match.group(1))
                         total_seconds += number * multiplier
                         found_time = True
-                    except ValueError:
+                    except (ValueError, ImportError):
                         continue
 
         # Try standalone numbers (assume minutes if no unit specified)
@@ -76,7 +78,7 @@ class CommandInterpreter:
                 except ValueError:
                     pass
 
-        return total_seconds if found_time else None
+        return int(total_seconds) if found_time else None
 
     def _extract_timer_name(self, text: str, duration_text: str) -> str:
         """Extract timer name from the command."""
@@ -122,6 +124,19 @@ class CommandInterpreter:
         if any(word in text for word in ['clear', 'delete', 'remove']) and any(word in text for word in ['all', 'everything', 'timers']):
             return {"type": "clear"}
 
+        # Check for delete commands first (more specific)
+        if any(indicator in text for indicator in self.delete_indicators):
+            for indicator in self.delete_indicators:
+                if indicator in text:
+                    parts = text.split(indicator, 1)
+                    if len(parts) > 1:
+                        name = parts[1].strip()
+                        name = re.sub(r'^(the|a|an)\s+', '', name)
+                        name = name.replace('timer', '').strip()
+                        if name:
+                            return {"type": "delete", "name": name}
+                    return {"type": "delete", "name": "timer"}
+
         # Check for pause/resume/stop commands
         for command_type, indicators in [
             ("pause", self.pause_indicators),
@@ -135,11 +150,10 @@ class CommandInterpreter:
                         parts = text.split(indicator, 1)
                         if len(parts) > 1:
                             name = parts[1].strip()
-                            name = re.sub(r'^(the|a|an)\s+', '', name)  # Remove leading "the" or "a"
-                            name = name.replace('timer', '').strip()  # Remove "timer"
-                            if name:  # Only return if we found a specific name
+                            name = re.sub(r'^(the|a|an)\s+', '', name)
+                            name = name.replace('timer', '').strip()
+                            if name:
                                 return {"type": command_type, "name": name}
-                        # If no specific name found, return default
                         return {"type": command_type, "name": "timer"}
 
         # Handle create/start command

@@ -197,13 +197,23 @@ The assistant will understand your intent and execute the command.
         button_frame.pack(fill=tk.X, padx=20, pady=20)
         
         def apply_settings():
+            # Apply settings immediately
             self.timer_manager.alert_manager.set_audio_settings(
                 frequency=freq_var.get(),
                 duration=dur_var.get(),
                 interval=int_var.get()
             )
             self.timer_manager.alert_manager.alert_timeout = timeout_var.get()
-            self.print_output("Audio settings updated!")
+            
+            # If there are any active alerts, restart them with new settings
+            active_alerts = list(self.timer_manager.alert_manager.active_alerts.keys())
+            for timer_name in active_alerts:
+                if timer_name in self.timer_manager.alert_manager.active_alerts:
+                    # Stop and restart alert with new settings
+                    self.timer_manager.alert_manager.stop_alert(timer_name)
+                    self.timer_manager.alert_manager.start_alert(timer_name)
+            
+            self.print_output(f"Audio settings updated! Frequency: {freq_var.get()}Hz, Duration: {dur_var.get()}ms, Interval: {int_var.get():.1f}s, Max Duration: {timeout_var.get()}s")
             settings_window.destroy()
         
         def test_beep():

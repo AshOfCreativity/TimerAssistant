@@ -75,14 +75,14 @@ class AlertManager:
         for timer_name in list(self.active_alerts.keys()):
             self.stop_alert(timer_name)
     
-    def set_audio_settings(self, frequency: int = None, duration: int = None, interval: float = None):
+    def set_audio_settings(self, frequency=None, duration=None, interval=None):
         """Update audio settings for notifications"""
         if frequency is not None:
-            self.beep_frequency = max(37, min(32767, frequency))  # Windows beep limits
+            self.beep_frequency = max(37, min(32767, int(frequency)))  # Windows beep limits
         if duration is not None:
-            self.beep_duration = max(10, min(5000, duration))  # Reasonable duration limits
+            self.beep_duration = max(10, min(5000, int(duration)))  # Reasonable duration limits
         if interval is not None:
-            self.beep_interval = max(0.1, min(10.0, interval))  # Reasonable interval limits
+            self.beep_interval = max(0.1, min(10.0, float(interval)))  # Reasonable interval limits
     
     def get_audio_settings(self):
         """Get current audio settings"""
